@@ -9,14 +9,12 @@ int case_1();  int case_2();  int case_3();  int case_4(); int case_5();
 int case_6();  int case_7();  int case_8();  int case_9(); int case_10();  
 int case_11(); int case_12(); int case_13();  
 
-
 /******************************************************************************\
 |* main									      *| 
 \******************************************************************************/
 int main(){
-   int errors = 0;
-
    // test of weighted quantile
+   int errors = 0;
    errors += case_1(); errors += case_2(); errors += case_3(); 
    errors += case_4(); errors += case_5(); errors += case_6(); 
    errors += case_7(); errors += case_8(); errors += case_9(); 
@@ -46,7 +44,17 @@ int main(){
       } 
    } 
    if (failure == 0) printf("wselect: no failures\n"); 
-   
+
+   // test percentiles
+   double xx[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};   
+   double ww[] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};   
+
+   int n = 10;
+   double result = 0.0;
+   double prob = 0.1; 
+   wquantile(xx, ww, &n, &prob, &result);
+   printf("quantile(%.2f) = %.2f", prob, result);
+
    return 0;
 }
 

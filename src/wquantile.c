@@ -37,7 +37,7 @@ void wquant0(double*, double*, double, int, int, double, double*);
 #include <stdio.h>
 #include <string.h>	   
 void debug_print_data(double*, double*, int, int, char*);
-void debug_print_state(double, int, int);
+void debug_print_state(int, int);
 #endif
 
 /******************************************************************************\
@@ -59,7 +59,14 @@ void wquantile(double *array, double *weights, int *n, double *prob,
       wselect0(array, weights, 0, *n - 1, *n - 1);
       *result = array[*n - 1];
    } else {				
-      wquant0(array, weights, 0.0, 0, *n - 1, *prob, result);      
+      // copy 'array' and 'weights' because function 'wquant0' is destructive
+      double *array_cpy, *weights_cpy;
+      array_cpy = (double*) Calloc(*n, double);
+      weights_cpy = (double*) Calloc(*n, double);
+      Memcpy(array_cpy, array, *n); 
+      Memcpy(weights_cpy, weights, *n); 
+      wquant0(array_cpy, weights_cpy, 0.0, 0, *n - 1, *prob, result);      
+      Free(array_cpy); Free(weights_cpy);
    }
 }
 
@@ -87,11 +94,11 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
    if (hi <= lo) return;   // case: n = 1
 
    if (hi - lo == 1) {	   // case: n = 2
-      double one_minus_prob = 1.0 - prob;
-      if (is_equal(prob * weights[lo], one_minus_prob * weights[hi])){ 
-	 *result = prob * array[lo] + one_minus_prob * array[hi];  	 
+      double one_minus = 1.0 - prob;
+      if (is_equal(one_minus * weights[lo], prob * weights[hi])){ 
+	 *result = (array[lo] + array[hi]) / 2.0;  	 
       }
-      else if (weights[lo] > weights[hi]) {
+      else if (one_minus * weights[lo] > prob * weights[hi]) {
 	 *result = array[lo];
       } else {
 	 *result = array[hi];
@@ -120,7 +127,7 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 
    #if DEBUG_MODE 
    debug_print_data(array, weights, lo, hi, "");
-   debug_print_state(pivot, i, j);
+   debug_print_state(i, j);
    #endif
 
    // termination criterion: sum of weights on both sides are smaller than 0.5
@@ -288,8 +295,8 @@ void debug_print_data(double *array, double *weights, int lo, int hi,
    printf("\n");
 }
 
-void debug_print_state(double pivot, int i, int j)
+void debug_print_state(int i, int j)
 { 
-   printf("final:  pivot = %.2f\ti = %d\tj = %d\n", pivot, i, j);
+   printf("final:\ti = %d\tj = %d\n", i, j);
 }
 #endif 
