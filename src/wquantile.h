@@ -1,6 +1,3 @@
-// #include <math.h>
-// #include <float.h>
-
 #include <R.h>
 
 #ifndef _WQUANTILE_H

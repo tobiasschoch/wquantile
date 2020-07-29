@@ -53,7 +53,7 @@ int main(){
    double result = 0.0;
    double prob = 0.1; 
    wquantile(xx, ww, &n, &prob, &result);
-   printf("quantile(%.2f) = %.2f", prob, result);
+   printf("quantile(%.2f) = %.2f\n", prob, result);
 
    return 0;
 }

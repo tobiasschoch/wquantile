@@ -26,7 +26,7 @@ where
    * on return, the k-th order statistic is located in `array[k]`. 
 
 ## Details
-The functions build on a weighted version of the quickselect algorithm with the Bentley and McIlroy (1993) 3-way partitioning scheme. For very small arrays, we use selection sort.   
+The functions build on a weighted version of the quickselect algorithm with the Bentley and McIlroy (1993) 3-way partitioning scheme. For very small arrays, we use insertion sort.   
 
 For equal weighting, i.e. when all elements in `weights` are equal, `wquantile` computes quantiles of type 2 in Hyndman and Fan (1996). 
 

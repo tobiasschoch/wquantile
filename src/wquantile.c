@@ -1,19 +1,19 @@
 /******************************************************************************\
 |*         weighted quantile and selection of k-th largest element	      *| 
 |* -------------------------------------------------------------------------- *| 
-|* PROJECT sctbase							      *| 
+|* PROJECT wquantile							      *| 
 |* SUBJECT weighted quantile and selection of k-th largest element using      *| 
 |*	   a weighted variant of quickselect (with Bentley and McIlroy's      *| 
 |*	   (1993) 3-way partitioning scheme); for small arrays, insertion     *| 
 |*	   sort is used							      *| 
-|* AUTHORS Tobias Schoch (tobias.schoch@fhnw.ch), July 27, 2020		      *| 
+|* AUTHORS Tobias Schoch (tobias.schoch@fhnw.ch), July 29, 2020		      *| 
 |* LICENSE GPL >= 2							      *| 
 |* COMMENT see Bentley, J.L. and D.M. McIlroy (1993). Engineering a Sort      *| 
 |*	   Function, Software - Practice and Experience 23, pp. 1249-1265;    *| 
 |*	   the extension of the method to weighted problems is ours	      *| 
 \******************************************************************************/
 
-# define _medium_array	7  // pivotal element is determined by medium of three 
+# define _medium_array	10 // pivotal element is determined by medium of three 
 # define _large_array	40 // pivotal element determined by ninther
 #define DEBUG_MODE	0  // debug mode (0 = off; 1 = activated)
 
@@ -28,6 +28,8 @@ static inline int choose_pivot(double*, int, int)
    __attribute__((always_inline));
 static inline int is_equal(double, double) __attribute__((always_inline));
 static inline void partition_3way(double*, double*, int, int, int*, int*)
+   __attribute__((always_inline));
+static inline double insertionselect(double*, double*, int, int, double) 
    __attribute__((always_inline));
 
 void wquant0(double*, double*, double, int, int, double, double*);
@@ -52,21 +54,23 @@ void debug_print_state(int, int);
 void wquantile(double *array, double *weights, int *n, double *prob, 
    double *result)
 {
-   if (is_equal(*prob, 0.0)){			// prob = 0.0
+   if (is_equal(*prob, 0.0)) {			// prob = 0.0
       wselect0(array, weights, 0, *n - 1, 0);
       *result = array[0];
-   } else if (is_equal(*prob, 1.0)){		// prob = 1.0
+   } else if (is_equal(*prob, 1.0)) {		// prob = 1.0
       wselect0(array, weights, 0, *n - 1, *n - 1);
       *result = array[*n - 1];
    } else {				
-      // copy 'array' and 'weights' because function 'wquant0' is destructive
-      double *array_cpy, *weights_cpy;
-      array_cpy = (double*) Calloc(*n, double);
-      weights_cpy = (double*) Calloc(*n, double);
-      Memcpy(array_cpy, array, *n); 
-      Memcpy(weights_cpy, weights, *n); 
-      wquant0(array_cpy, weights_cpy, 0.0, 0, *n - 1, *prob, result);      
-      Free(array_cpy); Free(weights_cpy);
+      // make copy 'array' and 'weights' because 'wquant0' is destructive
+      double *array2;
+      // array2 = [array[0..(n-1)], weights[0..(n-1)]], i.e. 'weights' is 
+      // appended to 'array' s.t. we have one contiguous chunk of memory 
+      // => cache optimized
+      array2 = (double*) Calloc(2 * *n, double);
+      Memcpy(array2, array, *n); 
+      Memcpy(array2 + *n, weights, *n); 
+      wquant0(array2, array2 + *n, 0.0, 0, *n - 1, *prob, result);      
+      Free(array2); 
    }
 }
 
@@ -106,12 +110,18 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
       return; 
    }
 
-   // case: n > 2
-   if (sum_w < DBL_EPSILON){  // sum_w is only computed at initialization 
+   if (sum_w < DBL_EPSILON) { // sum_w is only computed at initialization 
       for (int k = lo; k <= hi; ++k) 
 	 sum_w += weights[k]; 
    }
 
+   // case: n <= _medium_array
+   if (hi - lo + 1 <= _medium_array) {
+      *result = insertionselect(array, weights, lo, hi, prob);
+      return;
+   }
+
+   // case: n > _medium_array: weighted quickselect
    // Bentley-McIlroy's 3-way partitioning (weighted): the positions of the 
    // sentinels 'i' and 'j' are returned 
    int i, j; 
@@ -268,6 +278,59 @@ static inline double med3(double *array, int i, int j, int k)
    return array[i] < array[j] ? 
          (array[j] < array[k] ? j : array[i] < array[k] ? k : i) 
        : (array[j] > array[k] ? j : array[i] > array[k] ? k : i);
+}
+
+/******************************************************************************\
+|* insertionselect (i.e., insertion sort => select with weights)	      *| 
+\******************************************************************************/
+static inline double insertionselect(double *array, double *weights, int lo, 
+   int hi, double prob) 
+{
+   // part: sort
+   int exch = 0;		       
+   for (int i = hi; i > lo; i--) {	  // smallest element as sentinel
+      if (array[i] < array[i - 1]) {
+	 swap2(array, weights, i, i - 1);
+	 exch++;
+      }
+   }
+   if (exch != 0){			  // insertion sort with half-exchanges
+      for (int i = lo + 2; i <= hi; i++) {
+	 double pivot = array[i];
+	 double pivot_weight = weights[i];
+	 int j = i;
+	 while (pivot < array[j - 1]) {
+	    array[j] = array[j - 1];
+	    weights[j] = weights[j - 1];
+	    j--;
+	 }
+	 array[j] = pivot;
+	 weights[j] = pivot_weight;
+      }
+   }
+
+   // part: select 
+   double sum_w = 0.0;
+   for (int k = lo; k <= hi; k++)	  // total sum of weight
+      sum_w += weights[k]; 
+
+   int k;			        
+   double cumsum = 0.0; 
+   for (k = lo; k <= hi; k++) {		  // cumulative sum of weight
+      cumsum += weights[k]; 
+      if (cumsum > prob * sum_w) 
+	 break; 
+   }
+
+   if (k == lo)
+      return array[k];
+   else {
+      cumsum -= weights[k];
+      if (is_equal((1 - prob) * cumsum, prob * (sum_w - cumsum)))
+	 return (array[k - 1] + array[k]) / 2.0;  	 
+      else
+	 return array[k];
+   }
 }
 
 /******************************************************************************\
