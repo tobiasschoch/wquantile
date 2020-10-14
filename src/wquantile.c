@@ -13,9 +13,12 @@
 |*	   the extension of the method to weighted problems is ours	      *| 
 \******************************************************************************/
 
-# define _medium_array	10 // pivotal element is determined by medium of three 
-# define _large_array	40 // pivotal element determined by ninther
-#define DEBUG_MODE	0  // debug mode (0 = off; 1 = activated)
+# define _medium_array	40 // switch from insertion sort to quickselect; 
+			   // using https://github.com/google/benchmark on
+			   // Intel i7-8550U (mobile processor, 2017)
+
+# define _large_array	50 // pivotal element determined by ninther
+# define DEBUG_MODE	0  // debug mode (0 = off; 1 = activated)
 
 #include "wquantile.h"
 
@@ -99,14 +102,13 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 
    if (hi - lo == 1) {	   // case: n = 2
       double one_minus = 1.0 - prob;
-      if (is_equal(one_minus * weights[lo], prob * weights[hi])){ 
+      if (is_equal(one_minus * weights[lo], prob * weights[hi])) 
 	 *result = (array[lo] + array[hi]) / 2.0;  	 
-      }
-      else if (one_minus * weights[lo] > prob * weights[hi]) {
+      else if (one_minus * weights[lo] > prob * weights[hi]) 
 	 *result = array[lo];
-      } else {
+      else 
 	 *result = array[hi];
-      }
+
       return; 
    }
 
@@ -206,10 +208,13 @@ static inline void partition_3way(double *array, double *weights, int lo,
    for (;;) {
       while (array[++(*i)] < pivot)
 	 if (*i == hi) break;
+
       while (pivot < array[--(*j)])
 	 if (*j == lo) break;
+
       if (*i == *j && is_equal(array[*i], pivot))
 	 swap2(array, weights, ++p, *i);
+
       if (*i >= *j) break;		  // check if sentinels cross 
       swap2(array, weights, *i, *j);	       
 
@@ -222,6 +227,7 @@ static inline void partition_3way(double *array, double *weights, int lo,
    *i = *j + 1;
    for (int k = lo; k <= p; k++)
       swap2(array, weights, k, (*j)--);
+
    for (int k = hi; k >= q; k--)
       swap2(array, weights, k, (*i)++);
 }
@@ -343,18 +349,22 @@ void debug_print_data(double *array, double *weights, int lo, int hi,
    if (strlen(message) > 0) {
       printf("------\n");
       printf("%s x\t", message);
-   } else {
+   } else 
       printf("x \t");
-   }
-   for (int i = lo; i <= hi; ++i) printf("%.2f\t", array[i]);
+
+   for (int i = lo; i <= hi; ++i) 
+      printf("%.2f\t", array[i]);
+
    printf("\n");
    //
-   if (strlen(message) > 0) {
+   if (strlen(message) > 0) 
       printf("%s w\t", message);
-   } else {
+   else 
       printf("w \t");
-   }
-   for (int i = lo; i <= hi; ++i) printf("%.2f\t", weights[i]);
+
+   for (int i = lo; i <= hi; ++i) 
+      printf("%.2f\t", weights[i]);
+
    printf("\n");
 }
 
