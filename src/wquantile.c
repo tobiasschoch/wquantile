@@ -1,17 +1,26 @@
-/******************************************************************************\
-|*         weighted quantile and selection of k-th largest element	      *| 
-|* -------------------------------------------------------------------------- *| 
-|* PROJECT wquantile							      *| 
-|* SUBJECT weighted quantile and selection of k-th largest element using      *| 
-|*	   a weighted variant of quickselect (with Bentley and McIlroy's      *| 
-|*	   (1993) 3-way partitioning scheme); for small arrays, insertion     *| 
-|*	   sort is used							      *| 
-|* AUTHORS Tobias Schoch (tobias.schoch@fhnw.ch), July 29, 2020		      *| 
-|* LICENSE GPL >= 2							      *| 
-|* COMMENT see Bentley, J.L. and D.M. McIlroy (1993). Engineering a Sort      *| 
-|*	   Function, Software - Practice and Experience 23, pp. 1249-1265;    *| 
-|*	   the extension of the method to weighted problems is ours	      *| 
-\******************************************************************************/
+/* weighted quantile and selection of k-th largest element 
+
+   Copyright (C) 2020 Tobias Schoch (e-mail: tobias.schoch@gmail.com) 
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, a copy is available at
+   https://www.gnu.org/licenses/
+
+   Reference:  Bentley, J.L. and D.M. McIlroy (1993). Engineering a 
+	       Sort Function, Software - Practice and Experience 23, 
+	       pp. 1249-1265    
+   Note:       The extension of the method to weighted problems is ours.	
+*/
 
 # define _medium_array	40 // switch from insertion sort to quickselect; 
 			   // using https://github.com/google/benchmark on
