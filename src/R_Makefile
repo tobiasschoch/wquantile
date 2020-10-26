@@ -1,5 +1,5 @@
 # some macros
-CC		= C:/Rtools/mingw_64/bin/gcc.exe
+CC		= C:/Rtools/mingw64/bin/gcc.exe
 CFLAGS		= -std=c11 -O0
 R_C_HEADER	= C:/"Program Files"/R/R-3.5.1/include
 #BLAS_LIBS	= C:/"Program Files"/R/R-3.5.1/bin/x64/Rblas.dll 
