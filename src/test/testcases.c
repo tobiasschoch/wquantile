@@ -98,7 +98,6 @@ int case_1(){
       printf("error, case 1: %.2f instead of %.2f\n", m, result);
       return 1;
    } else return 0;
-
 } 
 
 // Case 2 
@@ -112,7 +111,6 @@ int case_2(){
       printf("error, case 2: %.2f instead of %.2f\n", m, result);
       return 1;
    } else return 0;
-
 } 
 
 // Case 3 
