@@ -11,14 +11,7 @@ where
 
    * `array` and `weights` are arrays of size `n`, 
    * `prob` specifies the quantile, i.e. a value in the interval [0,1],
-   * on return, the variable `result` has the estimated quantile. 
-
-In addition, the library includes the function `wquantile_noalloc` which is similar to `wquantile` but it does not allocate memory. Instead, `wquantile_noalloc` takes as an additional argument a work array of size `2*n` (see argument`work`);
- 
-```C
-void wquantile_noalloc(double *array, double *work, double *weights, int *n, double *prob, double *result)
-```
-
+   * on return, the variable `result` has the estimated quantile ; 
 
 **2. selection of the k-th largest element (k-th order statistic)**
 
