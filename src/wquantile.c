@@ -24,7 +24,7 @@
 
 # define _medium_array 40	// switch from insertion sort to quickselect 
 # define _large_array 50	// pivotal element determined by ninther
-# define DEBUG_MODE	0		// debug mode (0 = off; 1 = activated)
+# define DEBUG_MODE 0		// debug mode (0 = off; 1 = activated)
 
 #include "wquantile.h"
 
@@ -82,7 +82,7 @@ void wquantile(double *array, double *weights, int *n, double *prob,
 void wquantile_noalloc(double *array, double *weights, double *work, int *n, 
 	double *prob, double *result)
 {
-	if (is_equal(*prob, 0.0)) {					// prob = 0.0
+	if (is_equal(*prob, 0.0)) {				// prob = 0.0
 		wselect0(array, weights, 0, *n - 1, 0);
 		*result = array[0];
 	} else if (is_equal(*prob, 1.0)) {			// prob = 1.0
@@ -223,7 +223,7 @@ static inline void partition_3way(double *array, double *weights, int lo,
 	// the pivot are swapped to the far left and right,
 
 	int p = lo, q = hi + 1;
-	*i = lo; *j = hi + 1;			// initialize the sentinels
+	*i = lo; *j = hi + 1;				// initialize the sentinels
 
 	for (;;) {
 		while (array[++(*i)] < pivot)
@@ -238,7 +238,7 @@ static inline void partition_3way(double *array, double *weights, int lo,
 		if (*i == *j && is_equal(array[*i], pivot))
 			swap2(array, weights, ++p, *i);
 
-		if (*i >= *j)				// check if sentinels cross
+		if (*i >= *j)					// check if sentinels cross
 			break;
 
 		swap2(array, weights, *i, *j);
