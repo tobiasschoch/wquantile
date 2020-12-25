@@ -22,13 +22,13 @@
    Note:       The extension of the method to weighted problems is ours.
 */
 
-# define _medium_array 40	// switch from insertion sort to quickselect 
+# define _medium_array 40	// switch from insertion sort to quickselect
 # define _large_array 50	// pivotal element determined by ninther
 # define DEBUG_MODE 0		// debug mode (0 = off; 1 = activated)
 
 #include "wquantile.h"
 
-static inline void swap2(double*, double*, int, int) 
+static inline void swap2(double*, double*, int, int)
 	__attribute__((always_inline));
 static inline double med3(double*, int, int, int) 
 	__attribute__((always_inline));
@@ -36,11 +36,9 @@ static inline int min(int, int) __attribute__((always_inline));
 static inline int choose_pivot(double*, int, int)
 	__attribute__((always_inline));
 static inline int is_equal(double, double) __attribute__((always_inline));
-static inline void partition_3way(double*, double*, int, int, int*, int*)
-	__attribute__((always_inline));
-static inline double insertionselect(double*, double*, int, int, double) 
-	__attribute__((always_inline));
 
+void partition_3way(double*, double*, int, int, int*, int*);
+double insertionselect(double*, double*, int, int, double); 
 void wquant0(double*, double*, double, int, int, double, double*);
 
 // debugging tools
@@ -52,7 +50,7 @@ void debug_print_state(int, int);
 #endif
 
 /******************************************************************************\
-|* wquantile  : weighted quantile                                             *|
+|* weighted quantile                                                          *|
 |*                                                                            *|
 |*  array     array[n]                                                        *|
 |*  weights   array[n]                                                        *|
@@ -70,10 +68,10 @@ void wquantile(double *array, double *weights, int *n, double *prob,
 }
 
 /******************************************************************************\
-|* wquantile_noalloc : weighted quantile (no memory allocation)               *|
+|* weighted quantile (no memory allocation)                                   *|
 |*                                                                            *|
 |*  array    array[n]                                                         *|
-|*  work     array[2*n]                                                       *|
+|*  work     work array[2*n]                                                  *|
 |*  weights  array[n]                                                         *|
 |*  n        dimension                                                        *|
 |*  prob     probability defining quantile (0 <= prob <= 1)                   *|
@@ -91,14 +89,14 @@ void wquantile_noalloc(double *array, double *weights, double *work, int *n,
 	} else {
 		// work = [array[0..(n-1)], weights[0..(n-1)]], i.e. 'weights' is
 		// appended to 'array' s.t. we have one contiguous chunk of memory
-		Memcpy(work, array, *n); 
+		Memcpy(work, array, *n);
 		Memcpy(work + *n, weights, *n);
 		wquant0(work, work + *n, 0.0, 0, *n - 1, *prob, result);
 	}
 }
 
 /******************************************************************************\
-|* wquant0:  weighted quantile (recursive function; for internal use)         *|
+|* weighted quantile (recursive function; for internal use)                   *|
 |*                                                                            *|
 |*  array    array[lo..hi]                                                    *|
 |*  weights  array[lo..hi]                                                    *|
@@ -113,20 +111,20 @@ void wquantile_noalloc(double *array, double *weights, double *work, int *n,
 \******************************************************************************/
 void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 	double prob, double *result)
-{ 
+{
 	#if DEBUG_MODE
 	debug_print_data(array, weights, lo, hi, "init");
 	#endif
 
-	if (hi <= lo) return;   // case: n = 1
+	if (hi <= lo) return;	// case: n = 1
 
-	if (hi - lo == 1) {	   // case: n = 2
+	if (hi - lo == 1) {		// case: n = 2
 		double one_minus = 1.0 - prob;
 		if (is_equal(one_minus * weights[lo], prob * weights[hi]))
 			*result = (array[lo] + array[hi]) / 2.0;
 		else if (one_minus * weights[lo] > prob * weights[hi])
 			*result = array[lo];
-		else 
+		else
 			*result = array[hi];
 
 		return;
@@ -164,11 +162,11 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 
 	// termination criterion: sum of weights on both sides are smaller than 0.5
 	if (sum_w_lo < prob * sum_w && sum_w_hi < (1.0 - prob) * sum_w) {
-		*result = array[j + 1]; 
+		*result = array[j + 1];
 	} else {
 		// recursion only on the partitioning with larger sum of weights
 		if ((1 - prob) * sum_w_lo > prob * sum_w_hi) {
-			// dumpw weight of ignored part
+			// dump weight of ignored part
 			weights[j + 1] = sum_w - sum_w_lo;
 			wquant0(array, weights, sum_w, lo, j + 1, prob, result);
 		}
@@ -180,7 +178,7 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 }
 
 /******************************************************************************\
-|* wselect0 select the k-th largest elemens (with weights; for internal use)  *|
+|* select the k-th largest element (with weights; for internal use)           *|
 |*                                                                            *|
 |*  array   array[lo..hi]                                                     *|
 |*  weights array[lo..hi]                                                     *|
@@ -209,10 +207,14 @@ void wselect0(double *array, double *weights, int lo, int hi, int k)
 }
 
 /******************************************************************************\
-|* partition_3way: Bentley and McIlroy's (1993) 3-way partitioning scheme     *|
+|* Bentley and McIlroy's (1993) 3-way partitioning scheme with weights        *|
+|*  array   array[lo..hi]                                                     *|
+|*  weights array[lo..hi]                                                     *|
+|*  lo, hi  dimensions                                                        *|
+|*  i, j    sentinels scanning up and down                                    *|
 \******************************************************************************/
-static inline void partition_3way(double *array, double *weights, int lo,
-	int hi, int *i, int *j)
+void partition_3way(double *array, double *weights, int lo, int hi, int *i,
+	int *j)
 {
 	// determine pivot and swap it into position 'lo' (i.e., position 0)
 	swap2(array, weights, choose_pivot(array, lo, hi), lo);
@@ -261,7 +263,10 @@ static inline void partition_3way(double *array, double *weights, int lo,
 }
 
 /******************************************************************************\
-|* choose_pivot: choose pivotal element (methods depend on the array size     *|
+|* choose pivotal element: for arrays of size < _large_array, the median of   *|
+|* three is taken as pivotal element, otherwise we take Tukey's ninther       *|
+|*  array   array[lo..hi]                                                     *|
+|*  lo, hi  dimension                                                         *|
 \******************************************************************************/
 static inline int choose_pivot(double *array, int lo, int hi)
 {
@@ -277,17 +282,20 @@ static inline int choose_pivot(double *array, int lo, int hi)
 }
 
 /******************************************************************************\
-|* swap: swap two elements in double array                                    *|
+|* swap the elements i and j in array and index                               *|
+|*  array  array[n]                                                           *|
+|*  index  array[n]                                                           *|
+|*  i, j   elements to be swapped                                             *|
 \******************************************************************************/
 static inline void swap2(double *array, double *weights, int i, int j)
-{  
+{
 	double tmp = array[i]; array[i] = array[j]; array[j] = tmp;
 	// swap weights
 	tmp = weights[i]; weights[i] = weights[j]; weights[j] = tmp;
 }
 
 /******************************************************************************\
-|* min: minimum of two integer values                                         *|
+|* minimum of two integer values                                              *|
 \******************************************************************************/
 static inline int min(int a, int b)
 {
@@ -295,8 +303,8 @@ static inline int min(int a, int b)
 }
 
 /******************************************************************************\
-|* is_equal: check whether two doubles are equal using Knuth's notion of      *|
-|* essential equality                                                         *|
+|* check whether two doubles are equal using Knuth's notion of essential      *|
+|* equality                                                                   *|
 \******************************************************************************/
 static inline int is_equal(double a, double b)
 {
@@ -305,20 +313,24 @@ static inline int is_equal(double a, double b)
 }
 
 /******************************************************************************\
-|* med3: median-of-three (but without swaps)                                  *|
+|* median-of-three (but without swaps)                                        *|
 \******************************************************************************/
 static inline double med3(double *array, int i, int j, int k)
 {
-	return array[i] < array[j] ? 
+	return array[i] < array[j] ?
 			(array[j] < array[k] ? j : array[i] < array[k] ? k : i)
 		:	(array[j] > array[k] ? j : array[i] > array[k] ? k : i);
 }
 
 /******************************************************************************\
-|* insertionselect (i.e., insertion sort => select with weights)              *|
+|* weighted quantile by insertion sort with weights                           *|
+|*  array    array[lo..hi]                                                    *|
+|*  weights  array[lo..hi]                                                    *|
+|*  lo, hi   dimension                                                        *|
+|*  prob     prob. of the weighted quantile                                   *|
 \******************************************************************************/
-static inline double insertionselect(double *array, double *weights, int lo,
-	int hi, double prob)
+double insertionselect(double *array, double *weights, int lo, int hi,
+	double prob)
 {
 	// part: sort
 	int exch = 0;
@@ -345,7 +357,7 @@ static inline double insertionselect(double *array, double *weights, int lo,
 		}
 	}
 
-   // part: select 
+	// part: select 
 	double sum_w = 0.0;
 	for (int k = lo; k <= hi; k++)		// total sum of weight
 		sum_w += weights[k];
@@ -373,7 +385,7 @@ static inline double insertionselect(double *array, double *weights, int lo,
 /******************************************************************************\
 |* DEBUGGING TOOLS                                                            *|
 \******************************************************************************/
-#if DEBUG_MODE 
+#if DEBUG_MODE
 void debug_print_data(double *array, double *weights, int lo, int hi,
 	char *message)
 { 
