@@ -21,20 +21,22 @@ endif
 
 # link
 ifneq (, $(findstring mingw, $(SYS)))
-# Windows MinGW
-wquantile: wquantile.o 
-	$(CC) -shared -o $@.dll $@.o $(DLL_R) 
-else
-# Linux 
-wquantile: wquantile.o 
-	$(CC) -shared -o $@.so $@.o $(DLL_R) 
+test: test.o wquantile.o 
+	$(CC) $@.o $(DLL_R) wquantile.o -o test
+else 
+test: test.o wquantile.o 
+	$(CC) $@.o -L $(DLL_R) wquantile.o -lm -lR -o test.out
 endif
 
 # compile
 wquantile.o: wquantile.c 
 	$(CC) -Wall --pedantic -I $(R_C_HEADER) -c $*.c $(CFLAGS) 
 
+# compile
+test.o: test.c 
+	$(CC) -I $(R_C_HEADER) -c $*.c $(CFLAGS) 
+
 # housekeeping
 .PHONY: clean
 clean: 
-	rm wquantile.o 
+	rm wquantile.o test.o
