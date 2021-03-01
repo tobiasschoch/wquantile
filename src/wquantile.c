@@ -1,6 +1,6 @@
-/* weighted quantile and selection of k-th largest element 
+/* weighted quantile and selection of k-th largest element
 
-   Copyright (C) 2020 Tobias Schoch (e-mail: tobias.schoch@gmail.com) 
+   Copyright (C) 2020 Tobias Schoch (e-mail: tobias.schoch@gmail.com)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -16,21 +16,21 @@
    License along with this library; if not, a copy is available at
    https://www.gnu.org/licenses/
 
-   Reference:  Bentley, J.L. and D.M. McIlroy (1993). Engineering a 
-               Sort Function, Software - Practice and Experience 23, 
-               pp. 1249-1265    
+   Reference:  Bentley, J.L. and D.M. McIlroy (1993). Engineering a
+               Sort Function, Software - Practice and Experience 23,
+               pp. 1249-1265
    Note:       The extension of the method to weighted problems is ours.
 */
 
-# define _medium_array 40	// switch from insertion sort to quickselect
-# define _large_array 50	// pivotal element determined by ninther
+# define _n_quickselect 40	// switch from insertion sort to quickselect
+# define _n_nither 50		// pivotal element determined by ninther
 # define DEBUG_MODE 0		// debug mode (0 = off; 1 = activated)
 
 #include "wquantile.h"
 
 static inline void swap2(double*, double*, int, int)
 	__attribute__((always_inline));
-static inline double med3(double*, int, int, int) 
+static inline double med3(double*, int, int, int)
 	__attribute__((always_inline));
 static inline int min(int, int) __attribute__((always_inline));
 static inline int choose_pivot(double*, int, int)
@@ -38,11 +38,11 @@ static inline int choose_pivot(double*, int, int)
 static inline int is_equal(double, double) __attribute__((always_inline));
 
 void partition_3way(double*, double*, int, int, int*, int*);
-double insertionselect(double*, double*, int, int, double); 
+double insertionselect(double*, double*, int, int, double);
 void wquant0(double*, double*, double, int, int, double, double*);
 
 // debugging tools
-#if DEBUG_MODE 
+#if DEBUG_MODE
 #include <stdio.h>
 #include <string.h>
 void debug_print_data(double*, double*, int, int, char*);
@@ -64,7 +64,7 @@ void wquantile(double *array, double *weights, int *n, double *prob,
 	double *work;
 	work = (double*) Calloc(2 * *n, double);
 	wquantile_noalloc(array, weights, work, n, prob, result);
-	Free(work); 
+	Free(work);
 }
 
 /******************************************************************************\
@@ -77,7 +77,7 @@ void wquantile(double *array, double *weights, int *n, double *prob,
 |*  prob     probability defining quantile (0 <= prob <= 1)                   *|
 |*  result   on return: weighted quantile                                     *|
 \******************************************************************************/
-void wquantile_noalloc(double *array, double *weights, double *work, int *n, 
+void wquantile_noalloc(double *array, double *weights, double *work, int *n,
 	double *prob, double *result)
 {
 	if (is_equal(*prob, 0.0)) {				// prob = 0.0
@@ -135,13 +135,13 @@ void wquant0(double *array, double *weights, double sum_w, int lo, int hi,
 			sum_w += weights[k];
 	}
 
-	// case: n <= _medium_array
-	if (hi - lo + 1 <= _medium_array) {
+	// case: n <= _n_quickselect
+	if (hi - lo + 1 <= _n_quickselect) {
 		*result = insertionselect(array, weights, lo, hi, prob);
 		return;
 	}
 
-	// case: n > _medium_array: weighted quickselect
+	// case: n > _n_quickselect: weighted quickselect
 	// Bentley-McIlroy's 3-way partitioning (weighted): the positions of the
 	// sentinels 'i' and 'j' are returned
 	int i, j;
@@ -246,7 +246,7 @@ void partition_3way(double *array, double *weights, int lo, int hi, int *i,
 		swap2(array, weights, *i, *j);
 
 		// swap equal elements to the far left and right, respectively
-		if (is_equal(array[*i], pivot)) 
+		if (is_equal(array[*i], pivot))
 			swap2(array, weights, ++p, *i);
 
 		if (is_equal(array[*j], pivot))
@@ -263,7 +263,7 @@ void partition_3way(double *array, double *weights, int lo, int hi, int *i,
 }
 
 /******************************************************************************\
-|* choose pivotal element: for arrays of size < _large_array, the median of   *|
+|* choose pivotal element: for arrays of size < _n_nither, the median of      *|
 |* three is taken as pivotal element, otherwise we take Tukey's ninther       *|
 |*  array   array[lo..hi]                                                     *|
 |*  lo, hi  dimension                                                         *|
@@ -272,7 +272,7 @@ static inline int choose_pivot(double *array, int lo, int hi)
 {
 	int n = hi - lo + 1;
 	int mid = lo + n / 2;		// small array: median of three
-	if (n > _large_array) {		// large array: Tukey's ninther
+	if (n > _n_nither) {		// large array: Tukey's ninther
 		int eps = n / 8;
 		lo = med3(array, lo, lo + eps, lo + eps + eps);
 		mid = med3(array, mid - eps, mid, mid + eps);
@@ -357,7 +357,7 @@ double insertionselect(double *array, double *weights, int lo, int hi,
 		}
 	}
 
-	// part: select 
+	// part: select
 	double sum_w = 0.0;
 	for (int k = lo; k <= hi; k++)		// total sum of weight
 		sum_w += weights[k];
@@ -388,7 +388,7 @@ double insertionselect(double *array, double *weights, int lo, int hi,
 #if DEBUG_MODE
 void debug_print_data(double *array, double *weights, int lo, int hi,
 	char *message)
-{ 
+{
 	if (strlen(message) > 0) {
 		printf("------\n");
 		printf("%s x\t", message);
@@ -412,7 +412,7 @@ void debug_print_data(double *array, double *weights, int lo, int hi,
 }
 
 void debug_print_state(int i, int j)
-{ 
+{
 	printf("final:\ti = %d\tj = %d\n", i, j);
 }
-#endif 
+#endif
