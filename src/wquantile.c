@@ -24,7 +24,7 @@
 
 # define _n_quickselect 40  // switch from insertion sort to quickselect
 # define _n_nither 50       // pivotal element determined by ninther
-# define DEBUG_MODE         // debug mode (0 = off; 1 = activated)
+# define DEBUG_MODE 0       // debug mode (0 = off; 1 = activated)
 
 #include "wquantile.h"
 
