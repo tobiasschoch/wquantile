@@ -1,40 +1,21 @@
-# determine OS: Linux vs. Windows (mingw)
-SYS := $(shell gcc -dumpmachine)
+CC         = gcc.exe
+CFLAGS     = -std=gnu99 -O3
+R_DIR      = C:/"Program Files"/R/R-4.2.1
+R_C_HEADER = $(R_DIR)/include
+DLL_R      = $(R_DIR)/bin/x64/R.dll
 
-ifneq (, $(findstring mingw, $(SYS)))
-	# Windows MinGW
-	CC		= C:/Rtools/mingw64/bin/gcc.exe
-	CFLAGS		= -std=gnu99 -O2
-	R_C_HEADER	= C:/"Program Files"/R/R-4.0.2/include
-	DLL_BLAS	= C:/"Program Files"/R/R-4.0.2/bin/x64/Rblas.dll
-	DLL_LAPACK	= C:/"Program Files"/R/R-4.0.2/bin/x64/Rlapack.dll
-	DLL_R		= C:/"Program Files"/R/R-4.0.2/bin/x64/R.dll
-else
-	# Linux
-	CC			= gcc
-	CFLAGS		= -g -std=gnu99 -O2
-	R_C_HEADER	= /usr/share/R/include/
-	DLL_BLAS	= /usr/lib/x86_64-linux-gnu/libblas.so
-	DLL_LAPACK	= /usr/lib/x86_64-linux-gnu/liblapack.so
-	DLL_R		= /usr/lib/R/lib/libR.so
-endif
+# Link
+OBJ = wquantile.o
 
-# link
-ifneq (, $(findstring mingw, $(SYS)))
-# Windows MinGW
-wquantile: wquantile.o
-	$(CC) -shared -o $@.dll $@.o $(DLL_R)
-else
-# Linux
-wquantile: wquantile.o
-	$(CC) -shared -o $@.so $@.o $(DLL_R)
-endif
+wquantile.dll : $(OBJ)
+	$(CC) -shared -o $@ $(DLL_R) $(OBJ)
 
-# compile
-wquantile.o: wquantile.c
-	$(CC) -Wall --pedantic -I $(R_C_HEADER) -c $*.c $(CFLAGS)
+# Compile
+%.o : %.c
+	$(CC) -Wall -pedantic -Wstrict-prototypes -I $(R_C_HEADER) -c -o $@ $< $(CFLAGS)
 
-# housekeeping
+# Housekeeping
 .PHONY: clean
 clean:
-	rm wquantile.o
+	rm $(OBJ) wquantile.dll
+

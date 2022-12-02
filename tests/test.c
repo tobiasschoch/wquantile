@@ -26,6 +26,15 @@ CHEAT_DECLARE(
 	}
 )
 
+CHEAT_DECLARE(
+	double weighted_quantile(double *array, double *weights, double prob,
+            int n) {
+		double result = 0.0;
+		wquantile(array, weights, &n, &prob, &result);
+		return result;
+	}
+)
+
 CHEAT_TEST(median_case_1,
 	int n = 5;
 	double x[] = {1.0, 2.0, 3.0, 4.0, 5.0};
@@ -163,4 +172,22 @@ CHEAT_TEST(quick_select,
 		wselect0(data, weights, 0, 19, at);
 		cheat_assert_double(data[at], result[at], PRECISION);
 	}
+)
+/******************************************************************************\
+|* TEST MINIMALISTIC CASES                                                    *|
+\******************************************************************************/
+CHEAT_TEST(mini_case_1_low,
+	int n = 2;
+	double x[] = {2.0, 1.0};
+	double w[] = {1.0, 1.0};
+	double m = weighted_quantile(x, w, 0.1, n);
+	cheat_assert_double(m, 1, PRECISION);
+)
+
+CHEAT_TEST(mini_case_1_hi,
+	int n = 2;
+	double x[] = {2.0, 1.0};
+	double w[] = {1.0, 1.0};
+	double m = weighted_quantile(x, w, 0.9, n);
+	cheat_assert_double(m, 2, PRECISION);
 )
