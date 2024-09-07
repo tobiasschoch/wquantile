@@ -50,13 +50,13 @@ cache size: L1: 256 KB, L2: 1 MB, L3: 8 MB).
 
 ## Build/ Installation
 The code is compiled against the header `R.h` of the R software
-([R Core Team](#References), 2021); see makefile in the folder `/src`.
+([R Core Team](#References), 2024); see makefile in the folder `/src`.
 
 The library `wquantile` can also be built *without* depending on the R
 software. To this end, remove the header file `R.h` and include instead
 the header files: `<math.h>`, `<float.h>`, `<string.h>`, and `<stdlib.h>`.
 In addition, make the following substitutions in the function `wquantile`:
-`calloc` for `Calloc`, `memcpy` for `Memcpy`, and `free` for `Free`.
+`calloc` for `R_Calloc`, `memcpy` for `Memcpy`, and `free` for `R_Free`.
 
 ## Community guidelines
 
@@ -88,6 +88,6 @@ Bentley, J.L. and D.M. McIlroy (1993). Engineering a Sort Function,
 Hyndman, R.J. and Y. Fan (1996). Sample Quantiles in Statistical
 Packages, *The American Statistician* 50, pp. 361-365.
 
-R Core Team (2021). R. A language and environment for statistical
+R Core Team (2024). R. A language and environment for statistical
 computing. R Foundation for Statistical Computing, Vienna, Austria.
 URL [https://www.R-project.org](https://www.R-project.org).
