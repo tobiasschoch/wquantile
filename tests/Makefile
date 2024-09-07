@@ -1,8 +1,9 @@
-# Linux
-CC			= gcc
-CFLAGS		= -g -std=gnu99 -O2
-R_C_HEADER	= /usr/lib64/R/include
-DLL_R		= /usr/lib64/R/lib
+CC         := gcc
+CFLAGS     := -std=gnu99 -O3 -fPIC
+R_DIR      := /usr/lib64/R
+R_C_HEADER := $(R_DIR)/include
+DLL_R      := $(R_DIR)/lib
+RM         := rm -f
 
 # link
 test: test.o wquantile.o
@@ -19,4 +20,4 @@ test.o: test.c
 # housekeeping
 .PHONY: clean
 clean:
-	rm wquantile.o test.o
+	$(RM) wquantile.o test.o test.out

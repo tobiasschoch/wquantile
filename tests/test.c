@@ -21,18 +21,28 @@ CHEAT_DECLARE(
 	double weighted_median(double *array, double *weights, int n) {
 		double result = 0.0;
 		double prob = 0.5;
-		wquantile(array, weights, &n, &prob, &result);
+        double *work;
+
+        // allocate memory (without using R's allocation mechanism)
+        work = (double*) Calloc(2 * sizeof(n), double);
+		wquantile_noalloc(array, weights, work, &n, &prob, &result);
+        Free(work);
 		return result;
-	}
+    }
 )
 
 CHEAT_DECLARE(
 	double weighted_quantile(double *array, double *weights, double prob,
             int n) {
 		double result = 0.0;
-		wquantile(array, weights, &n, &prob, &result);
+        double *work;
+
+        // allocate memory (without using R's allocation mechanism)
+        work = (double*) Calloc(2 * sizeof(n), double);
+		wquantile_noalloc(array, weights, work, &n, &prob, &result);
+        Free(work);
 		return result;
-	}
+    }
 )
 
 CHEAT_TEST(median_case_1,
